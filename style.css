@@ -1,0 +1,46 @@
+
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f8f8f8;
+}
+.controls {
+  margin: 20px;
+}
+button {
+  padding: 10px;
+  margin: 5px;
+  font-size: 16px;
+}
+.game-board {
+  display: grid;
+  grid-template-columns: repeat(10, 60px);
+  gap: 4px;
+  justify-content: center;
+  margin: 20px;
+}
+.cell {
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border: 1px solid #ccc;
+  font-size: 10px;
+  position: relative;
+}
+.yellow { background-color: #fffaa5; }
+.green { background-color: #b4f0b4; }
+.blue { background-color: #cce4ff; }
+.pawn {
+  font-size: 18px;
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+}
+.log {
+  background: #eee;
+  max-width: 600px;
+  margin: 10px auto;
+  padding: 10px;
+  text-align: left;
+  font-size: 12px;
+}

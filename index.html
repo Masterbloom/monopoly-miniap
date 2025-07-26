@@ -1,0 +1,23 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Монополия</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Монополия</h1>
+  <div class="controls">
+    <button onclick="sendCommand('/roll')">🎲 Бросить кубик</button>
+    <button onclick="sendCommand('/buy')">🧱 Купить</button>
+    <button onclick="sendCommand('/endturn')">⏩ Идти далее</button>
+    <button onclick="sendCommand('/sell')">🥇 Продать бизнес</button>
+  </div>
+  <div class="game-board" id="board"></div>
+  <div id="players"></div>
+  <div id="log" class="log"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
