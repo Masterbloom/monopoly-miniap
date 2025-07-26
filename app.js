@@ -1,5 +1,5 @@
 
-const API = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+const API = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbwmWx18AaQQMsah6ZySQibqGbymuglyFpq7JPBiKzUfDwFtc3IPcWuJsHSgDqeuZ6P3Dw/exec';
 
 const myId = window.Telegram.WebApp.initDataUnsafe.user?.id.toString();
 const myName = window.Telegram.WebApp.initDataUnsafe.user?.first_name || 'Гость';
