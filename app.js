@@ -1,75 +1,86 @@
 
-const API = 'https://script.google.com/macros/s/https://script.google.com/macros/s/AKfycbwmWx18AaQQMsah6ZySQibqGbymuglyFpq7JPBiKzUfDwFtc3IPcWuJsHSgDqeuZ6P3Dw/exec';
+let state = {};
+const apiUrl = "https://script.google.com/macros/s/AKfycbwmWx18AaQQMsah6ZySQibqGbymuglyFpq7JPBiKzUfDwFtc3IPcWuJsHSgDqeuZ6P3Dw/exec?action=state";
 
-const myId = window.Telegram.WebApp.initDataUnsafe.user?.id.toString();
-const myName = window.Telegram.WebApp.initDataUnsafe.user?.first_name || 'Гость';
-
-const boardEl = document.getElementById('board');
-const bankEl = document.getElementById('bank');
-const logEl = document.getElementById('log');
-
-const rollBtn = document.getElementById('rollBtn');
-const buyBtn = document.getElementById('buyBtn');
-const endBtn = document.getElementById('endBtn');
-const sellBtn = document.getElementById('sellBtn');
-
-function sendAction(action) {
-  fetch(API, {
-    method: 'POST',
-    body: JSON.stringify({ message: { chat: { id: myId }, from: { id: myId, first_name: myName }, text: '/' + action } }),
-  });
+async function fetchState() {
+  const res = await fetch(apiUrl);
+  state = await res.json();
+  render();
 }
 
-rollBtn.onclick = () => sendAction('roll');
-buyBtn.onclick = () => sendAction('buy');
-endBtn.onclick = () => sendAction('endturn');
-sellBtn.onclick = () => sendAction('sell');
+function render() {
+  const game = document.getElementById("game");
+  game.innerHTML = "";
 
-function refresh() {
-  fetch(API + '?action=state')
-    .then(res => res.json())
-    .then(data => {
-      boardEl.innerHTML = '';
-      data.cells.forEach((cell, i) => {
-        const cellEl = document.createElement('div');
-        cellEl.className = 'cell';
-        cellEl.innerHTML = `<div>${cell.name}</div>`;
-        const owners = data.players.filter(p => p.properties.includes(cell.name));
-        if (owners.length > 0) {
-          const owner = owners[0];
-          cellEl.classList.add('owner-' + getColor(owner.id));
-        }
-        data.players.forEach(p => {
-          if (p.position === i) {
-            const token = document.createElement('div');
-            token.className = 'token';
-            token.innerText = p.name[0];
-            cellEl.appendChild(token);
-          }
-        });
-        boardEl.appendChild(cellEl);
-      });
+  // Игровое поле
+  const field = document.createElement("div");
+  field.className = "field";
+  state.cells.forEach((cell, i) => {
+    const cellDiv = document.createElement("div");
+    cellDiv.className = "cell";
+    cellDiv.innerHTML = cell.name;
 
-      const me = data.players.find(p => p.id === myId);
-      if (me) {
-        bankEl.innerHTML = `<strong>${me.name}</strong>: ${me.money}₽`;
-        const isMyTurn = data.settings?.current_turn === myId;
-        const phase = data.settings?.phase;
-        rollBtn.style.display = (isMyTurn && phase === 'waiting_roll') ? 'inline-block' : 'none';
-        buyBtn.style.display = (isMyTurn && phase === 'waiting_action') ? 'inline-block' : 'none';
-        endBtn.style.display = (isMyTurn && phase === 'waiting_action') ? 'inline-block' : 'none';
-        sellBtn.style.display = (me.money < 0 && me.properties.length > 0) ? 'inline-block' : 'none';
+    // Закрашиваем, если есть владелец
+    if (cell.owner) {
+      const player = state.players.find(p => p.id === cell.owner);
+      if (player) {
+        cellDiv.style.backgroundColor = player.color;
+        cellDiv.style.color = "black";
       }
+    }
 
-      logEl.innerHTML = '<h3>Последние действия:</h3><ul>' +
-        data.log.map(item => `<li>${item}</li>`).join('') + '</ul>';
+    // Позиции игроков
+    state.players.forEach(p => {
+      if (p.position === i) {
+        const pawn = document.createElement("div");
+        pawn.className = "pawn";
+        pawn.style.backgroundColor = p.color;
+        pawn.title = p.name;
+        cellDiv.appendChild(pawn);
+      }
     });
+
+    field.appendChild(cellDiv);
+  });
+
+  // Игроки
+  const bank = document.createElement("div");
+  bank.className = "bank";
+  state.players.forEach(p => {
+    const el = document.createElement("div");
+    el.innerText = `${p.name}: ${p.money}₽`;
+    el.style.color = p.color;
+    bank.appendChild(el);
+  });
+
+  // Лог
+  const log = document.createElement("div");
+  log.className = "log";
+  state.log.forEach(entry => {
+    const p = document.createElement("p");
+    p.innerText = entry;
+    log.appendChild(p);
+  });
+
+  // Кнопки
+  const controls = document.createElement("div");
+  controls.className = "controls";
+  ["/roll", "/buy", "/sell", "/endturn"].forEach(cmd => {
+    const btn = document.createElement("button");
+    btn.innerText = cmd;
+    btn.onclick = () => sendCommand(cmd);
+    controls.appendChild(btn);
+  });
+
+  game.appendChild(field);
+  game.appendChild(bank);
+  game.appendChild(controls);
+  game.appendChild(log);
 }
 
-function getColor(id) {
-  const colors = ['yellow', 'green', 'blue'];
-  const hash = parseInt(id.slice(-2), 10);
-  return colors[hash % 3];
+function sendCommand(cmd) {
+  Telegram.WebApp.sendData(cmd);
 }
 
-setInterval(refresh, 3000);
+Telegram.WebApp.ready();
+fetchState();
